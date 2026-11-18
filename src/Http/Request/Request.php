@@ -97,7 +97,7 @@ class Request
         if (!array_key_exists($_attr_name, $this->attributes)) {
             return $_default;
         }
-        return $this->headers[$_attr_name];
+        return $this->attributes[$_attr_name];
     }
 
     public function getParam(string $_param_name, mixed $_default = null)
