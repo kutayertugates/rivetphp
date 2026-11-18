@@ -1,0 +1,19 @@
+{
+    "name": "kutayertugates/rivetphp",
+    "description": "A lightweight web framework for PHP",
+    "type": "library",
+    "license": "MIT",
+    "autoload": {
+        "psr-4": {
+            "Rivetphp\\": "src/"
+        }
+    },
+    "authors": [
+        {
+            "name": "Kutay Ertuğ Ateş",
+            "email": "kutayertug@gmail.com"
+        }
+    ],
+    "minimum-stability": "stable",
+    "require": {}
+}
