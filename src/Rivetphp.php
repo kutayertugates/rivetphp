@@ -13,12 +13,20 @@ use Rivetphp\Routing\Router;
 class Rivetphp
 {
     private Request $request;
-    public Router $router;
+    private Router $router;
 
     public function __construct()
     {
         $this->request = new Request();
         $this->router = new Router($this->request);
+    }
+
+    public function route(
+        string $_path,
+        callable $_handler,
+        array $_methods = ["GET"],
+    ) {
+        $this->router->add_route($_methods, $_path, $_handler);
     }
 
     public function run()

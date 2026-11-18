@@ -21,13 +21,12 @@ class Router
 
     // HELPERS
 
-    private function add_route(
-        string $_method,
+    public function add_route(
+        array $_methods,
         string $_path,
         callable $_handler,
     ) {
-        $this->routes[] = new Route($_method, $_path, $_handler);
-        return;
+        $this->routes[] = new Route($_methods, $_path, $_handler);
     }
 
     private function matchPattern(string $_pattern, string $_path): array|null
@@ -47,38 +46,6 @@ class Router
         return $params;
     }
 
-    // PUBLIC
-
-    public function get(string $_path, callable $_handler)
-    {
-        $this->add_route("GET", $_path, $_handler);
-    }
-
-    public function post(string $_path, callable $_handler)
-    {
-        $this->add_route("POST", $_path, $_handler);
-    }
-
-    public function put(string $_path, callable $_handler)
-    {
-        $this->add_route("PUT", $_path, $_handler);
-    }
-
-    public function patch(string $_path, callable $_handler)
-    {
-        $this->add_route("PATCH", $_path, $_handler);
-    }
-
-    public function delete(string $_path, callable $_handler)
-    {
-        $this->add_route("DELETE", $_path, $_handler);
-    }
-
-    public function options(string $_path, callable $_handler)
-    {
-        $this->add_route("OPTIONS", $_path, $_handler);
-    }
-
     public function dispatch(): BaseResponse
     {
         $route = null;
@@ -89,7 +56,7 @@ class Router
                 continue;
             }
 
-            if ($this->request->method !== $r->method) {
+            if (!in_array($this->request->method, $r->methods)) {
                 continue;
             }
 

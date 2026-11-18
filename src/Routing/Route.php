@@ -4,18 +4,24 @@ namespace Rivetphp\Routing;
 
 class Route
 {
-    public string $method;
-    public string $path;
+    public array $methods = [];
+    public string $path = "";
     public $handler;
 
     public string $pattern;
 
     public function __construct(
-        string $_method,
+        array $_methods,
         string $_path,
         callable $_handler,
     ) {
-        $this->method = strtoupper($_method);
+        if ($_methods === []) {
+            $this->methods[] = "GET";
+        } else {
+            foreach ($_methods as $m) {
+                $this->methods[] = strtoupper($m);
+            }
+        }
         $this->path = $_path;
         $this->handler = $_handler;
         $this->pattern = $this->generatePattern();
