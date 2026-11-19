@@ -4,6 +4,7 @@ namespace Rivetphp;
 
 use Rivetphp\Http\Request\Request;
 use Rivetphp\Http\Response\BaseResponse;
+use Rivetphp\Http\Response\HtmlResponse;
 use Rivetphp\Routing\Router;
 
 /**
@@ -16,21 +17,34 @@ use Rivetphp\Routing\Router;
  */
 class Rivetphp
 {
+    private string $app_path;
+
     private Request $request;
     private Router $router;
 
     private array $error_handlers = [];
     private array $after_request = [];
 
+    public string $template_dir;
+
     /**
      * Creates the request and router instances
      *
      * @since v0.1.0
      */
-    public function __construct()
+    public function __construct(string $_app_path)
     {
+        $this->app_path = rtrim($_app_path, "/") . "/";
         $this->request = new Request();
         $this->router = new Router($this->request);
+
+        $this->template_dir = $this->app_path . "templates/";
+    }
+
+    public function setTemplateDir(string $_template_dir)
+    {
+        $this->template_dir =
+            $this->app_path . rtrim($_template_dir, "/") . "/";
     }
 
     /**
@@ -108,6 +122,10 @@ class Rivetphp
 
         foreach ($this->after_request as $f) {
             $response = $f($response);
+        }
+
+        if ($response instanceof HtmlResponse) {
+            $response->update_relpath_to_abspath($this->template_dir);
         }
 
         $response->apply();

@@ -12,9 +12,9 @@ namespace Rivetphp\Http\Response;
  */
 class BaseResponse
 {
-    private string $raw_response;
-    private int $status_code;
-    private array $headers = [];
+    protected string $raw_response;
+    protected int $status_code;
+    protected array $headers = [];
 
     /**
      * Wraps a raw response body with a status code
