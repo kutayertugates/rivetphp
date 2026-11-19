@@ -1,5 +1,10 @@
 # RivetPHP
 
+![PHP](https://img.shields.io/badge/PHP-8.0%2B-777BB4)
+![Version](https://img.shields.io/badge/version-0.2.0-orange)
+![Dependencies](https://img.shields.io/badge/dependencies-none-brightgreen)
+![License](https://img.shields.io/badge/license-MIT-blue)
+
 RivetPHP is a small HTTP framework written in plain PHP. You register a few routes, return a response, and that is the whole story. No container to wire up, no service provider to boot, no config tree to learn before the first request. Composer's autoloader, the incoming request, and your code.
 
 It was built for the kind of PHP that has to run anywhere: shared hosting, a small VPS, a container, or the folder you upload over FTP at midnight. If your host runs PHP 8, it runs RivetPHP.
