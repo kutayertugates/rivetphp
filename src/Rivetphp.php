@@ -2,23 +2,33 @@
 
 namespace Rivetphp;
 
-// Exception
-use Rivetphp\Exceptions\NotFoundException;
-// Http
 use Rivetphp\Http\Request\Request;
-use Rivetphp\Http\Response\BaseResponse;
-// Routing
 use Rivetphp\Routing\Router;
 
 class Rivetphp
 {
     private Request $request;
     private Router $router;
+    private array $error_handlers = [];
 
     public function __construct()
     {
         $this->request = new Request();
         $this->router = new Router($this->request);
+    }
+
+    public function register_error_handler(string $_type, callable $_handler)
+    {
+        if (!is_a($_type, \Throwable::class, true)) {
+            throw new \InvalidArgumentException(
+                "Handler type must implement Throwable.",
+            );
+        }
+
+        $this->error_handlers[] = [
+            "type" => $_type,
+            "handler" => $_handler,
+        ];
     }
 
     public function route(
@@ -34,10 +44,13 @@ class Rivetphp
     {
         try {
             $response = $this->router->dispatch();
-        } catch (NotFoundException $e) {
-            $response = new BaseResponse("", 404);
         } catch (\Throwable $e) {
-            $response = new BaseResponse("", 500);
+            foreach ($this->error_handlers as $h) {
+                if ($e instanceof $h["type"]) {
+                    $response = $h["handler"]($e);
+                    break;
+                }
+            }
         }
 
         $response->apply();
