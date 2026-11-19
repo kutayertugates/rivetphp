@@ -14,6 +14,7 @@ class BaseResponse
 {
     private string $raw_response;
     private int $status_code;
+    private array $headers = [];
 
     /**
      * Wraps a raw response body with a status code
@@ -28,8 +29,13 @@ class BaseResponse
         $this->status_code = $_status_code;
     }
 
+    public function addHeader(string $_header_name, string $value)
+    {
+        $this->headers[$_header_name] = $value;
+    }
+
     /**
-     * Sends the status code and body to the client
+     * Sends the status code, headers, and body to the client
      *
      * @return void
      * @since v0.1.0
@@ -37,6 +43,9 @@ class BaseResponse
     public function apply()
     {
         http_response_code($this->status_code);
+        foreach ($this->headers as $hname => $hvalue) {
+            header($hname . ": " . $hvalue);
+        }
         echo $this->raw_response;
     }
 }

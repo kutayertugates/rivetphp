@@ -22,18 +22,8 @@ class JsonResponse extends BaseResponse
     public function __construct(array $_payload, int $_status_code = 200)
     {
         $raw_response = json_encode($_payload);
-        parent::__construct($raw_response, $_status_code);
-    }
+        $this->addHeader("Content-Type", "application/json");
 
-    /**
-     * Sends the JSON content type and encoded body
-     *
-     * @return void
-     * @since v0.1.0
-     */
-    public function apply()
-    {
-        header("Content-Type: application/json");
-        return parent::apply();
+        parent::__construct($raw_response, $_status_code);
     }
 }

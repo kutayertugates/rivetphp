@@ -3,6 +3,7 @@
 namespace Rivetphp;
 
 use Rivetphp\Http\Request\Request;
+use Rivetphp\Http\Response\BaseResponse;
 use Rivetphp\Routing\Router;
 
 /**
@@ -17,7 +18,9 @@ class Rivetphp
 {
     private Request $request;
     private Router $router;
+
     private array $error_handlers = [];
+    private array $after_request = [];
 
     /**
      * Creates the request and router instances
@@ -52,6 +55,11 @@ class Rivetphp
         ];
     }
 
+    public function register_after_request(callable $_func)
+    {
+        $this->after_request[] = $_func;
+    }
+
     /**
      * Registers a route on the router
      *
@@ -68,6 +76,7 @@ class Rivetphp
         array $_methods = ["GET"],
         array $_middlewares = [],
     ) {
+        $_methods[] = "OPTIONS";
         $this->router->add_route($_path, $_handler, $_methods, $_middlewares);
     }
 
@@ -84,12 +93,21 @@ class Rivetphp
         try {
             $response = $this->router->dispatch();
         } catch (\Throwable $e) {
+            $error_handler_matched = false;
             foreach ($this->error_handlers as $h) {
                 if ($e instanceof $h["type"]) {
+                    $error_handler_matched = true;
                     $response = $h["handler"]($e);
                     break;
                 }
             }
+            if (!$error_handler_matched) {
+                $response = new BaseResponse($e->getMessage(), 500);
+            }
+        }
+
+        foreach ($this->after_request as $f) {
+            $response = $f($response);
         }
 
         $response->apply();

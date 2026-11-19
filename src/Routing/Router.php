@@ -3,6 +3,7 @@
 namespace Rivetphp\Routing;
 
 use Rivetphp\Exceptions\Http\MethodNotAllowedException;
+use Rivetphp\Exceptions\Http\NotFoundException;
 use Rivetphp\Http\Request\Request;
 use Rivetphp\Http\Response\BaseResponse;
 
@@ -93,19 +94,28 @@ class Router
     {
         $route = null;
         $params = null;
+        $pathMatched = false;
+
         foreach ($this->routes as $r) {
-            $params = $this->matchPattern($r->pattern, $this->request->path);
-            if (
-                $params !== null &&
-                in_array($this->request->method, $r->methods)
-            ) {
+            $matched = $this->matchPattern($r->pattern, $this->request->path);
+
+            if ($matched === null) {
+                continue;
+            }
+
+            $pathMatched = true;
+
+            if (in_array($this->request->method, $r->methods, true)) {
                 $route = $r;
+                $params = $matched;
                 break;
             }
         }
 
         if ($route === null) {
-            throw new MethodNotAllowedException("Page not found", 404);
+            throw $pathMatched
+                ? new MethodNotAllowedException("Method Not Allowed.")
+                : new NotFoundException("Page not found.");
         }
 
         $this->request->params = $params;
