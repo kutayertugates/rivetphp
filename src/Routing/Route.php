@@ -2,6 +2,14 @@
 
 namespace Rivetphp\Routing;
 
+/**
+ * Represents a single route
+ *
+ * Keeps the handler, allowed methods and compiled pattern for a path
+ *
+ * @package Rivetphp\Routing
+ * @since v0.1.0
+ */
 class Route
 {
     public array $methods = [];
@@ -11,6 +19,15 @@ class Route
     public string $pattern;
     public array $middlewares = [];
 
+    /**
+     * Builds the route and compiles its pattern
+     *
+     * @param array $_methods Allowed HTTP methods, GET when empty
+     * @param string $_path Route path
+     * @param callable $_handler Route handler
+     * @param array $_middlewares Middleware class names
+     * @since v0.1.0
+     */
     public function __construct(
         array $_methods,
         string $_path,
@@ -30,6 +47,14 @@ class Route
         $this->middlewares = $_middlewares;
     }
 
+    /**
+     * Converts the path into a regex pattern
+     *
+     * Supports plain segments and named parameters like {id} and {id?}
+     *
+     * @return string Compiled regex pattern
+     * @since v0.1.0
+     */
     private function generatePattern(): string
     {
         $segments = array_filter(
@@ -47,7 +72,6 @@ class Route
                     $m,
                 )
             ) {
-                // Düz metin parçası: sadece burada kaçışla.
                 $pattern .= "/" . preg_quote($segment, "#");
                 continue;
             }

@@ -2,6 +2,14 @@
 
 namespace Rivetphp\Http\Request;
 
+/**
+ * Handles HTTP request context
+ *
+ * Base request context class for enabling the transport of a request
+ *
+ * @package Rivetphp\Http\Request
+ * @since v0.1.0
+ */
 class Request
 {
     public string $method;
@@ -21,6 +29,11 @@ class Request
 
     private array $attributes = [];
 
+    /**
+     * Builds the request context from the PHP superglobals
+     *
+     * @since v0.1.0
+     */
     public function __construct()
     {
         $this->method = $_SERVER["REQUEST_METHOD"] ?? "GET";
@@ -42,6 +55,14 @@ class Request
 
     // HELPERS
 
+    /**
+     * Loads all HTTP headers.
+     *
+     * This function loads HTTP headers, independent of cross platform
+     *
+     * @return array All headers
+     * @since v0.1.0
+     */
     private function loadHeaders(): array
     {
         $headers = function_exists("getallheaders") ? getallheaders() : [];
@@ -53,7 +74,6 @@ class Request
             }
         }
 
-        // Content-Type ve Content-Length HTTP_ prefix'i olmadan gelebilir.
         foreach (["CONTENT_TYPE", "CONTENT_LENGTH"] as $key) {
             if (isset($_SERVER[$key])) {
                 $name = str_replace("_", "-", $key);
@@ -71,6 +91,12 @@ class Request
         return $result;
     }
 
+    /**
+     * Decodes the request body according to its content type
+     *
+     * @return mixed Parsed body, or the raw body when the type is unknown
+     * @since v0.1.0
+     */
     private function parseBody()
     {
         $content_type = strtolower(
@@ -92,6 +118,14 @@ class Request
 
     // GETTERS
 
+    /**
+     * Returns a stored attribute
+     *
+     * @param string $_attr_name Attribute name
+     * @param mixed $_default Value used when the attribute is missing
+     * @return mixed
+     * @since v0.1.0
+     */
     public function getAttirbute(string $_attr_name, mixed $_default = null)
     {
         if (!array_key_exists($_attr_name, $this->attributes)) {
@@ -100,6 +134,14 @@ class Request
         return $this->attributes[$_attr_name];
     }
 
+    /**
+     * Returns a matched route parameter
+     *
+     * @param string $_param_name Parameter name
+     * @param mixed $_default Value used when the parameter is missing
+     * @return mixed
+     * @since v0.1.0
+     */
     public function getParam(string $_param_name, mixed $_default = null)
     {
         if (!array_key_exists($_param_name, $this->params)) {
@@ -108,6 +150,14 @@ class Request
         return $this->params[$_param_name];
     }
 
+    /**
+     * Returns a request header by its normalized name
+     *
+     * @param string $_header_name Header name, lowercase with underscores
+     * @param mixed $_default Value used when the header is missing
+     * @return mixed
+     * @since v0.1.0
+     */
     public function getHeader(string $_header_name, mixed $_default = null)
     {
         if (!array_key_exists($_header_name, $this->headers)) {
@@ -118,6 +168,14 @@ class Request
 
     // SETTERS
 
+    /**
+     * Stores an attribute on the request
+     *
+     * @param string $_key Attribute name
+     * @param mixed $_value Attribute value
+     * @return void
+     * @since v0.1.0
+     */
     public function setAttirbute(string $_key, mixed $_value)
     {
         $this->attributes[$_key] = $_value;
