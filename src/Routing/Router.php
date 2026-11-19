@@ -22,11 +22,17 @@ class Router
     // HELPERS
 
     public function add_route(
-        array $_methods,
         string $_path,
         callable $_handler,
+        array $_methods,
+        array $_middlewares,
     ) {
-        $this->routes[] = new Route($_methods, $_path, $_handler);
+        $this->routes[] = new Route(
+            $_methods,
+            $_path,
+            $_handler,
+            $_middlewares,
+        );
     }
 
     private function matchPattern(string $_pattern, string $_path): array|null
@@ -52,16 +58,13 @@ class Router
         $params = null;
         foreach ($this->routes as $r) {
             $params = $this->matchPattern($r->pattern, $this->request->path);
-            if ($params === null) {
-                continue;
+            if (
+                $params !== null &&
+                in_array($this->request->method, $r->methods)
+            ) {
+                $route = $r;
+                break;
             }
-
-            if (!in_array($this->request->method, $r->methods)) {
-                continue;
-            }
-
-            $route = $r;
-            break;
         }
 
         if ($route === null) {
@@ -69,6 +72,11 @@ class Router
         }
 
         $this->request->params = $params;
+
+        foreach ($route->middlewares as $mw) {
+            $class = new $mw($this->request);
+            $class->apply();
+        }
 
         $response = ($route->handler)($this->request);
 

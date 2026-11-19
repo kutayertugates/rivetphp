@@ -25,8 +25,9 @@ class Rivetphp
         string $_path,
         callable $_handler,
         array $_methods = ["GET"],
+        array $_middlewares = [],
     ) {
-        $this->router->add_route($_methods, $_path, $_handler);
+        $this->router->add_route($_path, $_handler, $_methods, $_middlewares);
     }
 
     public function run()

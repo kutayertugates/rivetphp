@@ -9,11 +9,13 @@ class Route
     public $handler;
 
     public string $pattern;
+    public array $middlewares = [];
 
     public function __construct(
         array $_methods,
         string $_path,
         callable $_handler,
+        array $_middlewares,
     ) {
         if ($_methods === []) {
             $this->methods[] = "GET";
@@ -25,6 +27,7 @@ class Route
         $this->path = $_path;
         $this->handler = $_handler;
         $this->pattern = $this->generatePattern();
+        $this->middlewares = $_middlewares;
     }
 
     private function generatePattern(): string
