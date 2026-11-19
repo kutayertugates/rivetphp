@@ -10,8 +10,10 @@ It was built for the kind of PHP that has to run anywhere: shared hosting, a sma
 - Middleware that runs per route and can pass data forward through request attributes
 - A request object built from the superglobals, with the body already decoded according to `Content-Type`
 - Header access that behaves the same on every SAPI, including the ones that ignore `getallheaders()`
-- JSON and raw responses with explicit status codes
+- JSON, HTML and raw responses with explicit status codes and custom headers
+- Plain PHP templates rendered from a configurable directory
 - Exception to response mapping, so errors come out in whatever shape your API needs
+- After-request hooks for last-minute response tweaks
 - No dependencies beyond Composer's autoloader
 
 ## Install
@@ -48,7 +50,7 @@ use Rivetphp\Http\Request\Request;
 use Rivetphp\Http\Response\JsonResponse;
 use Rivetphp\Rivetphp;
 
-$app = new Rivetphp();
+$app = new Rivetphp(__DIR__);
 
 $app->route('/', function (Request $request) {
     return new JsonResponse([
@@ -60,7 +62,7 @@ $app->route('/', function (Request $request) {
 $app->run();
 ```
 
-Send a request to `/` and JSON comes back. The front controller that receives all requests is yours to prepare, since the framework takes the request as it arrives.
+Send a request to `/` and JSON comes back. The constructor takes your application root; templates are looked up in `templates/` under that path unless you call `setTemplateDir()`. The front controller that receives all requests is yours to prepare, since the framework takes the request as it arrives.
 
 ## Routing
 
@@ -99,7 +101,7 @@ $app->route('/users', $createUser, ['POST']);
 $app->route('/users/{id}', $updateUser, ['PUT', 'PATCH']);
 ```
 
-Route patterns are anchored, and a trailing slash is accepted either way. First match wins, so declare specific routes before catch-all ones.
+Route patterns are anchored, and a trailing slash is accepted either way. First match wins, so declare specific routes before catch-all ones. `OPTIONS` is added to every route automatically. When a path matches but the method does not, dispatch throws `MethodNotAllowedException` (405); when no path matches, it throws `NotFoundException` (404).
 
 ## Reading the request
 
@@ -130,11 +132,28 @@ $token = $request->getHeader('authorization');
 return new JsonResponse(['created' => true], 201);
 ```
 
-`BaseResponse` sends a raw body untouched, which is handy for HTML or plain text:
+`BaseResponse` sends a raw body untouched, which is handy for plain text and simple markup:
 
 ```php
-return new BaseResponse('<h1>Maintenance</h1>', 503);
+$response = new BaseResponse('<h1>Maintenance</h1>', 503);
+$response->addHeader('Retry-After', '3600');
+
+return $response;
 ```
+
+`HtmlResponse` renders a PHP template and sends the result. It receives the template path, the data exposed to the template, and an optional status code:
+
+```php
+return new HtmlResponse('users/show.php', ['user' => $user]);
+```
+
+Templates are resolved inside the template directory: `templates/` under your application root by default, or whatever you pass to `setTemplateDir()`:
+
+```php
+$app->setTemplateDir('views');
+```
+
+Data keys become variables in the template, so `['user' => $user]` is available as `$user`.
 
 Every handler returns one of these, and `run()` takes care of sending it.
 
@@ -188,13 +207,26 @@ $app->register_error_handler(UnauthorizedException::class, function (Unauthorize
 });
 ```
 
-Handlers are checked in the order they were registered, and the first match wins, so a handler for `Exception` should come last. Each handler has to return a response object.
+Handlers are checked in the order they were registered, and the first match wins, so a handler for `Exception` should come last. Each handler has to return a response object. Anything no handler matches becomes a `500` response with the exception message, so a thrown error still produces a response instead of a blank page.
 
 The framework ships with exceptions for the usual status codes: `BadRequestException` (400), `UnauthorizedException` (401), `PaymentRequiredException` (402), `ForbiddenExceiption` (403), `NotFoundException` (404), `MethodNotAllowedException` (405) and `RequestTimeoutException` (408). They are ordinary exceptions, so you can use them in middleware, in handlers, or wherever a request should stop.
 
+## After the response
+
+After-request hooks run once the response object exists, right before it is sent. They receive the response and must return one, which makes them a good place for CORS headers, timing, or logging:
+
+```php
+$app->register_after_request(function (BaseResponse $response) {
+    $response->addHeader('X-Powered-By', 'RivetPHP');
+    return $response;
+});
+```
+
+Hooks run in registration order after error handling, so they also see responses produced by error handlers.
+
 ## Where it stops
 
-RivetPHP does not try to be everything. There is no ORM, no template engine, no queue, no CLI, no session manager. Database access, views and authentication are choices you make yourself, and the framework stays out of the way while you make them. What it does cover is the part almost every app needs on day one: turning an HTTP request into your code, and your return value back into a response.
+RivetPHP does not try to be everything. There is no ORM, no templating language, no queue, no CLI, no session manager. Views are plain PHP files rendered by `HtmlResponse`, not a template engine with its own syntax. Database access, views and authentication are choices you make yourself, and the framework stays out of the way while you make them. What it does cover is the part almost every app needs on day one: turning an HTTP request into your code, and your return value back into a response.
 
 If you need a full ecosystem, there are excellent frameworks for that. If you need to ship something small on hosting you do not control, this is aimed at you.
 

@@ -30,6 +30,7 @@ class Rivetphp
     /**
      * Creates the request and router instances
      *
+     * @param string $_app_path Base path of the application
      * @since v0.1.0
      */
     public function __construct(string $_app_path)
@@ -41,6 +42,13 @@ class Rivetphp
         $this->template_dir = $this->app_path . "templates/";
     }
 
+    /**
+     * Sets the directory used for HTML templates
+     *
+     * @param string $_template_dir Template directory, relative to the app path
+     * @return void
+     * @since v0.1.0
+     */
     public function setTemplateDir(string $_template_dir)
     {
         $this->template_dir =
@@ -69,6 +77,13 @@ class Rivetphp
         ];
     }
 
+    /**
+     * Registers a callback that runs after the response is built
+     *
+     * @param callable $_func Callback that receives and returns a response
+     * @return void
+     * @since v0.1.0
+     */
     public function register_after_request(callable $_func)
     {
         $this->after_request[] = $_func;

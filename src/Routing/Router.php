@@ -87,7 +87,8 @@ class Router
      * Finds the matching route, runs its middlewares and calls the handler
      *
      * @return BaseResponse
-     * @throws MethodNotAllowedException When no route matches the request
+     * @throws NotFoundException When the path does not match any route
+     * @throws MethodNotAllowedException When the path matches but the method does not
      * @since v0.1.0
      */
     public function dispatch(): BaseResponse

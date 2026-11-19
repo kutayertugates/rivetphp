@@ -29,6 +29,14 @@ class BaseResponse
         $this->status_code = $_status_code;
     }
 
+    /**
+     * Adds a header to the response
+     *
+     * @param string $_header_name Header name
+     * @param string $value Header value
+     * @return void
+     * @since v0.1.0
+     */
     public function addHeader(string $_header_name, string $value)
     {
         $this->headers[$_header_name] = $value;
